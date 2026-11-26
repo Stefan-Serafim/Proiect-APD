@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - 'feature/**'
-      - dev-ops
 
 permissions:
   contents: read
@@ -15,7 +14,7 @@ concurrency:
 
 jobs:
   open-pr:
-    if: github.event.deleted == false
+    if: github.event.deleted == false && github.actor != github.repository_owner
     runs-on: ubuntu-latest
     steps:
       - name: Open a pull request if needed
