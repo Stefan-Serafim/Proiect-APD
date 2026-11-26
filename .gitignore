@@ -1,6 +1,9 @@
-.pio/
-.vscode/
-/managed_components/
-/dependencies.lock
-/sdkconfig
-/sdkconfig.node_*
+build*/
+sdkconfig*
+!sdkconfig.defaults
+*.img
+*.pdb
+managed_components/
+dependencies.lock
+__pycache__/
+*.pyc
