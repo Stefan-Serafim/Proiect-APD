@@ -14,11 +14,10 @@ Proiectul va permite schimbul de mesaje intre doua telefoane fara internet. Fiec
 2. Instaleaza extensia PlatformIO IDE in VS Code.
 3. Cloneaza proiectul cu `git clone https://github.com/Stefan-Serafim/Proiect-APD.git`.
 4. Deschide folderul `Proiect-APD` in VS Code si porneste un terminal PlatformIO.
-5. Compileaza ambele noduri cu `pio run` sau ruleaza separat comenzile de mai jos.
+5. Ruleaza comanda de mai jos. Daca trece, ai compilat ambele noduri. Poti face acest test fara placi.
 
 ```powershell
-pio run -e node_a
-pio run -e node_b
+pio run
 ```
 
 PlatformIO descarca ESP-IDF si componenta LittleFS la prima compilare. Profilurile folosesc `esp32dev` cu 4 MB de flash. Pentru alta placa, schimba `board` in `platformio.ini`. Daca difera memoria flash, ajusteaza si `partitions.csv` si `sdkconfig.defaults`.
@@ -41,7 +40,9 @@ pio run -e node_b -t upload --upload-port COM4
 pio run -e node_b -t uploadfs --upload-port COM4
 ```
 
-Dupa trecerea la noua tabela de partitii, incarca firmware-ul si LittleFS pe fiecare placa. Deschide monitorul serial si reporneste placa. Ar trebui sa vezi `Node A` sau `Node B`, urmat de `Proiect APD - LittleFS OK`.
+La prima incercare, ruleaza scriptul pentru fiecare placa si deschide monitorul serial la 115200. Dupa ce repornesti placa, ar trebui sa vezi `Node A` sau `Node B`, urmat de `Proiect APD - LittleFS OK`.
+
+Echipa Web poate verifica aspectul paginii in browser cand exista `data/www/index.html`. Mesageria se testeaza cu ambele placi dupa integrarea modulelor.
 
 ## Structura
 
@@ -54,20 +55,28 @@ Punctul de intrare al firmware-ului este `app_main()` in `src/main.cpp`. Cand ad
 
 Pune fiecare suita Unity care ruleaza pe PC intr-un folder `test/test_native_<modul>/`.
 
-## GitHub
+## Cum lucram pe GitHub
 
-Accepta invitatia la repository. Porneste din `main` actualizat si creeaza un branch `feature/<task>` pentru issue-ul care ti-a fost asignat.
+Accepta invitatia la repository. Embedded foloseste branch-ul comun `feature/embedded`, iar Web foloseste `feature/web`. Stabiliti in echipa cine lucreaza la fiecare fisier. Fiecare pune 1-2 commituri cu schimbarile sale pe branch-ul comun. Pentru celelalte task-uri, porneste din `main` actualizat si creeaza un branch `feature/<task>`.
+
+Exemplu pentru Embedded. Colegii de la Web folosesc aceiasi pasi cu `feature/web`.
 
 ```powershell
-git switch main
+git fetch origin
+git switch feature/embedded
 git pull --ff-only
-git switch -c feature/modul-radio
-git add cale/catre/fisier
-git commit -m "Add radio module"
-git push -u origin feature/modul-radio
 ```
 
-Primul push al unui coleg pe `feature/<task>` deschide automat un PR catre `main`. Urmatoarele push-uri ajung in acelasi PR. Completeaza in PR ce ai schimbat si cum ai verificat. Pentru `src/radio/` si `src/messaging/`, GitHub cere automat review Technical Lead-ului.
+Dupa ce ai facut modificarile, salveaza-le intr-un commit si adu schimbarile colegilor inainte de push.
+
+```powershell
+git add cale/catre/fisier
+git commit -m "Add my changes"
+git pull --rebase
+git push
+```
+
+Primul push cu modificari pe branch-ul echipei deschide automat un PR catre `main`. Push-urile colegilor se aduna in acelasi PR. Scrieti acolo ce ati schimbat si ce ati incercat. GitHub cere review Technical Lead-ului pentru modificarile Embedded.
 
 CI compileaza ambele noduri, construieste imaginile LittleFS si ruleaza suitele native disponibile. Rezultatul CI si review-ul sunt consultative. DevOps integreaza PR-urile echipei manual si poate face push direct pe `main` pentru modificarile proprii.
 
@@ -75,11 +84,8 @@ CI compileaza ambele noduri, construieste imaginile LittleFS si ruleaza suitele 
 | --- | --- |
 | PM | `docs/management/`, `docs/testing_protocol.md`, `scripts/plot_metrics.py` |
 | Technical Lead | `docs/architecture.md`, `src/main.cpp`, `src/app_core.h` |
-| Embedded 1 | `src/radio/` |
-| Embedded 2 | `src/messaging/` |
-| Embedded 3 | `src/server/` |
-| Web 1 | `data/www/index.html`, `data/www/style.css`, `data/www/ui.js` |
-| Web 2 | `data/www/client.js`, `data/www/diagnostics.js` |
+| Embedded | `src/radio/`, `src/messaging/`, `src/server/` |
+| Web | `data/www/` |
 | Protocol | `src/protocol/`, `test/test_native_protocol/`, `docs/protocol_spec.md` |
 | QA | `docs/test_cases.md`, `docs/performance_analysis.md`, `tests/results/` |
 | DevOps | `platformio.ini`, `partitions.csv`, `sdkconfig.defaults`, `.github/`, `scripts/flash_nodes.ps1`, `README.md` |
