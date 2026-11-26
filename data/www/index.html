@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#101916">
+  <meta name="description" content="Mesagerie offline prin ESP32">
+  <title>ESP32 Messenger</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M4 5.75A2.75 2.75 0 0 1 6.75 3h10.5A2.75 2.75 0 0 1 20 5.75v7.5A2.75 2.75 0 0 1 17.25 16H11l-4.8 4v-4h-.45A2.75 2.75 0 0 1 3 13.25v-7.5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M7.5 8h9M7.5 11h6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+      </div>
+      <div class="node-info">
+        <h1 id="node-name">Nod local</h1>
+        <div class="peer-line">
+          <span id="peer-indicator" class="peer-dot" aria-hidden="true"></span>
+          <span id="peer-status" aria-live="polite">Peer offline</span>
+        </div>
+      </div>
+      <button id="diagnostics-open" class="icon-button" type="button" aria-label="Deschide panoul de diagnostic" aria-haspopup="dialog" aria-controls="diagnostic-panel" title="Diagnostic">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7"/><path d="M12 11v5m0-8h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </header>
+
+    <section class="conversation" aria-label="Conversație">
+      <ol id="message-list" class="message-list" aria-live="polite" aria-relevant="additions text"></ol>
+      <div id="empty-state" class="empty-state">
+        <span class="empty-icon" aria-hidden="true">⌁</span>
+        <p>Mesajele tale, fără internet.</p>
+        <span>Conectează-te la un peer și începe conversația.</span>
+      </div>
+    </section>
+
+    <footer class="composer-wrap">
+      <form id="message-form" class="composer" autocomplete="off">
+        <label class="sr-only" for="message-input">Scrie un mesaj</label>
+        <textarea id="message-input" name="message" rows="1" placeholder="Scrie un mesaj..." enterkeyhint="send"></textarea>
+        <button id="send-button" class="send-button" type="submit" aria-label="Trimite mesajul" disabled>
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m21 3-7.2 18-3.9-7.9L2 9.2 21 3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M10 13 21 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </button>
+      </form>
+      <div class="composer-meta">
+        <span id="byte-count" aria-live="polite">0 / 250 octeți</span>
+        <span id="send-hint">Enter pentru trimitere · Shift+Enter pentru rând nou</span>
+      </div>
+    </footer>
+  </main>
+
+  <div id="diagnostic-panel" class="modal" hidden>
+    <button class="modal-backdrop" type="button" data-diagnostics-close aria-label="Închide panoul de diagnostic"></button>
+    <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="diagnostic-title" tabindex="-1">
+      <header class="dialog-header">
+        <div>
+          <p class="eyebrow">ESP32 OFFLINE MESSENGER</p>
+          <h2 id="diagnostic-title">Diagnostic</h2>
+        </div>
+        <button class="icon-button" type="button" data-diagnostics-close aria-label="Închide">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </button>
+      </header>
+      <div class="diagnostic-grid">
+        <article class="diagnostic-card">
+          <span class="card-label">Test burst</span>
+          <strong id="burst-result">Pregătit pentru 100 de pachete</strong>
+          <button id="burst-test" class="secondary-button" type="button" data-diagnostic-action="burst">Pornește testul</button>
+        </article>
+        <article class="diagnostic-card">
+          <span class="card-label">RTT mediu</span>
+          <strong id="rtt-value">— <small>ms</small></strong>
+          <span id="rtt-range" class="muted">Min — · Max —</span>
+        </article>
+        <article class="diagnostic-card">
+          <span class="card-label">Pachete pierdute</span>
+          <strong id="loss-value">—</strong>
+          <span id="loss-detail" class="muted">Statistici indisponibile</span>
+        </article>
+        <article class="diagnostic-card">
+          <span class="card-label">Export</span>
+          <strong>Raport CSV</strong>
+          <a id="csv-export" class="secondary-button button-link" href="/api/metrics.csv">Descarcă CSV</a>
+        </article>
+      </div>
+      <p id="diagnostic-message" class="diagnostic-message" role="status">Conectează modulul de diagnostic pentru rezultate live.</p>
+      <div class="dialog-footer">
+        <span id="diagnostic-mode" class="mode-label">Mod local</span>
+        <button class="text-button" type="button" data-diagnostics-close>Închide</button>
+      </div>
+    </section>
+  </div>
+
+  <script src="ui.js"></script>
+  <!-- <script src="client.js"></script> -->
+  <!-- <script src="diagnostics.js"></script> -->
+</body>
+</html>
