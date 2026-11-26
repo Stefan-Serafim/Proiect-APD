@@ -21,11 +21,22 @@ jobs:
           python-version: '3.13'
       - name: Install PlatformIO
         run: python -m pip install platformio==6.2.0
+      - name: Check for firmware
+        id: firmware
+        run: |
+          if [[ -f embedded/main.c || -f embedded/main.cpp ]]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo 'Waiting for embedded/main.c or embedded/main.cpp.'
+          fi
       - name: Build Node A
+        if: steps.firmware.outputs.present == 'true'
         run: pio run -e node_a
       - name: Build Node B
+        if: steps.firmware.outputs.present == 'true'
         run: pio run -e node_b
       - name: Build LittleFS images
+        if: steps.firmware.outputs.present == 'true'
         run: pio run -e node_a -e node_b -t buildfs
       - name: Run native Unity tests
         run: |
