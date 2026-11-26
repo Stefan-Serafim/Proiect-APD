@@ -7,8 +7,11 @@ const encoder = new TextEncoder();
 export class ChatClient {
   constructor(ui, options = {}) {
     this.ui = ui;
-    this.wsUrl = options.wsUrl || `ws://${window.location.hostname || "192.168.4.1"}/ws`;
+    const host = window.location.hostname || "192.168.4.1";
+    this.wsUrl = options.wsUrl || `ws://${host}/ws`;
+    this.apiBaseUrl = options.apiBaseUrl || `http://${host}`;
     this.useMock = options.useMock ?? true;
+    this.enableRestFallback = options.enableRestFallback ?? false;
     this.maxPayloadBytes = options.maxPayloadBytes ?? MAX_PAYLOAD_BYTES;
 
     this.ws = null;
@@ -22,6 +25,19 @@ export class ChatClient {
 
   getByteLength(text = "") {
     return encoder.encode(String(text)).length;
+  }
+
+  getConnectionSummary() {
+    return {
+      mode: this.useMock ? "mock" : "websocket",
+      wsUrl: this.wsUrl,
+      enableRestFallback: this.enableRestFallback,
+      wsConnected: this.wsConnected,
+      peerOnline: this.peerOnline,
+      reconnectAttempt: this.reconnectAttempt,
+      messageCount: this.messages.length,
+      maxPayloadBytes: this.maxPayloadBytes,
+    };
   }
 
   onEvent(cb) {
@@ -70,15 +86,24 @@ export class ChatClient {
       this.startMockMode();
     } else {
       this.connectWebSocket();
+      if (this.enableRestFallback) {
+        this.fetchHistoryRest();
+      }
     }
   }
 
-  setMode({ useMock, wsUrl } = {}) {
+  setMode({ useMock, wsUrl, apiBaseUrl, enableRestFallback } = {}) {
     if (typeof wsUrl === "string" && wsUrl.trim()) {
       this.wsUrl = wsUrl.trim();
     }
+    if (typeof apiBaseUrl === "string" && apiBaseUrl.trim()) {
+      this.apiBaseUrl = apiBaseUrl.trim().replace(/\/+$/, "");
+    }
     if (typeof useMock === "boolean") {
       this.useMock = useMock;
+    }
+    if (typeof enableRestFallback === "boolean") {
+      this.enableRestFallback = enableRestFallback;
     }
 
     if (this.reconnectTimer) {
@@ -101,6 +126,19 @@ export class ChatClient {
     this.peerOnline = true;
     this.ui?.setConnectionState?.({ wsConnected: true, peerOnline: true });
     this.emit({ type: "ready", mode: "mock" });
+  }
+
+  async fetchHistoryRest() {
+    try {
+      const res = await fetch(`${this.apiBaseUrl}/api/history`);
+      if (!res.ok) return;
+      const data = await res.json();
+      if (Array.isArray(data?.messages)) {
+        this.handleIncomingServerMessage({ type: "history", messages: data.messages });
+      }
+    } catch {
+      // Ignorăm când endpoint-ul REST nu este încă disponibil
+    }
   }
 
   connectWebSocket() {
@@ -245,13 +283,14 @@ export class ChatClient {
       setTimeout(() => {
         const rttMs = Math.round(performance.now() - start);
         const delivered = this.peerOnline && Math.random() > 0.08;
+        const retries = delivered ? 0 : 1;
         const rssi = delivered ? Math.round(-52 - Math.random() * 14) : null;
-        this.updateMessageStatus(id, delivered ? "delivered" : "failed", { rttMs, rssi });
+        this.updateMessageStatus(id, delivered ? "delivered" : "failed", { rttMs, rssi, retries });
         this.emit({
           type: "ack",
           id,
           status: delivered ? "delivered" : "failed",
-          extra: { rttMs, rssi, retries: 0 },
+          extra: { rttMs, rssi, retries },
         });
       }, 25 + Math.random() * 35);
       return { ok: true, id, byteLength: check.byteLength };
@@ -261,6 +300,36 @@ export class ChatClient {
       this.ws.send(
         JSON.stringify({ type: "send", id, text: check.text, timestamp: msg.timestamp })
       );
+      return { ok: true, id, byteLength: check.byteLength };
+    }
+
+    if (this.enableRestFallback) {
+      const start = performance.now();
+      fetch(`${this.apiBaseUrl}/api/send`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, text: check.text, timestamp: msg.timestamp }),
+      })
+        .then((res) => (res.ok ? res.json() : Promise.reject(new Error(`HTTP ${res.status}`))))
+        .then((data) => {
+          const rttMs = Math.round(performance.now() - start);
+          const status = data?.status || "delivered";
+          this.updateMessageStatus(id, status, {
+            rttMs: data?.rttMs ?? rttMs,
+            rssi: data?.rssi,
+            retries: data?.retries ?? 0,
+          });
+          this.emit({
+            type: "ack",
+            id,
+            status,
+            extra: { rttMs: data?.rttMs ?? rttMs, rssi: data?.rssi, retries: data?.retries ?? 0 },
+          });
+        })
+        .catch(() => {
+          this.updateMessageStatus(id, "failed");
+          this.emit({ type: "ack", id, status: "failed", extra: {} });
+        });
       return { ok: true, id, byteLength: check.byteLength };
     }
 
