@@ -4,7 +4,7 @@ Proiectul va permite schimbul de mesaje intre doua telefoane fara internet. Fiec
 
 ## Tehnologii
 
-- VS Code, PlatformIO si Arduino-ESP32 pentru firmware
+- VS Code, PlatformIO si ESP-IDF pentru firmware C/C++
 - LittleFS pentru fisierele web
 - PowerShell pentru flash, Unity pentru teste si GitHub Actions pentru CI
 
@@ -21,7 +21,7 @@ pio run -e node_a
 pio run -e node_b
 ```
 
-Profilurile folosesc placa `esp32dev`. Dupa ce confirmam modelul, schimba `board` in sectiunea `[esp32]` din `platformio.ini`. Daca placile sunt diferite, seteaza `board` in fiecare profil.
+PlatformIO descarca ESP-IDF si componenta LittleFS la prima compilare. Profilurile folosesc `esp32dev` cu 4 MB de flash. Pentru alta placa, schimba `board` in `platformio.ini`. Daca difera memoria flash, ajusteaza si `partitions.csv` si `sdkconfig.defaults`.
 
 ## Flash si LittleFS
 
@@ -41,16 +41,18 @@ pio run -e node_b -t upload --upload-port COM4
 pio run -e node_b -t uploadfs --upload-port COM4
 ```
 
-Dupa flash, deschide monitorul serial si reporneste placa. Ar trebui sa vezi `Node A` sau `Node B`, urmat de `Proiect APD - LittleFS OK`.
+Dupa trecerea la noua tabela de partitii, incarca firmware-ul si LittleFS pe fiecare placa. Deschide monitorul serial si reporneste placa. Ar trebui sa vezi `Node A` sau `Node B`, urmat de `Proiect APD - LittleFS OK`.
 
 ## Structura
 
 - `src/`, `include/`, `lib/` pentru firmware, headere si biblioteci locale
-- `data/www/` pentru fisierele web, disponibile pe placa in `/www/`
+- `data/www/` pentru fisierele web, disponibile in firmware la `/littlefs/www/`
 - `test/` pentru teste Unity si `docs/` pentru documentatie
 - `scripts/` pentru flash si `.github/workflows/` pentru CI
 
-Creeaza directoarele goale cand adaugi primele fisiere. Pune fiecare suita Unity care ruleaza pe PC intr-un folder `test/test_native_<modul>/`.
+Punctul de intrare al firmware-ului este `app_main()` in `src/main.cpp`. Cand adaugi fisiere C/C++ in `src/`, trece-le in lista `SRCS` din `src/CMakeLists.txt` si declara componentele ESP-IDF folosite in `PRIV_REQUIRES`. Pentru SoftAP si ESP-NOW, foloseste API-urile `esp_wifi` si `esp_now`.
+
+Pune fiecare suita Unity care ruleaza pe PC intr-un folder `test/test_native_<modul>/`.
 
 ## GitHub
 
@@ -80,7 +82,7 @@ CI compileaza ambele noduri, construieste imaginile LittleFS si ruleaza suitele 
 | Web 2 | `data/www/client.js`, `data/www/diagnostics.js` |
 | Protocol | `src/protocol/`, `test/test_native_protocol/`, `docs/protocol_spec.md` |
 | QA | `docs/test_cases.md`, `docs/performance_analysis.md`, `tests/results/` |
-| DevOps | `platformio.ini`, `.github/`, `scripts/flash_nodes.ps1`, `README.md` |
+| DevOps | `platformio.ini`, `partitions.csv`, `sdkconfig.defaults`, `.github/`, `scripts/flash_nodes.ps1`, `README.md` |
 
 ## Probleme frecvente
 
