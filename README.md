@@ -54,7 +54,7 @@ Creeaza directoarele goale cand adaugi primele fisiere. Pune fiecare suita Unity
 
 ## GitHub
 
-Porneste din `main` actualizat si creeaza un branch pentru task-ul tau.
+Accepta invitatia la repository. Porneste din `main` actualizat si creeaza un branch `feature/<task>` pentru issue-ul care ti-a fost asignat. Pentru modificarile de integrare poti folosi si `dev-ops`.
 
 ```powershell
 git switch main
@@ -65,7 +65,22 @@ git commit -m "Add radio module"
 git push -u origin feature/modul-radio
 ```
 
-Deschide un PR catre `main`, noteaza cum ai verificat schimbarile si cere review. CI compileaza ambele noduri la PR si la push pe `main`. Ruleaza si suitele native cand sunt adaugate.
+Primul push cu modificari deschide automat un PR catre `main`. Urmatoarele push-uri ajung in acelasi PR. Completeaza in PR ce ai schimbat si cum ai verificat. Pentru `src/radio/` si `src/messaging/`, GitHub cere automat review Technical Lead-ului.
+
+CI compileaza ambele noduri, construieste imaginile LittleFS si ruleaza suitele native disponibile. Rezultatul CI si review-ul sunt consultative. DevOps coordoneaza integrarea prin merge manual.
+
+| Rol | Unde lucreaza |
+| --- | --- |
+| PM | `docs/management/`, `docs/testing_protocol.md`, `scripts/plot_metrics.py` |
+| Technical Lead | `docs/architecture.md`, `src/main.cpp`, `src/app_core.h` |
+| Embedded 1 | `src/radio/` |
+| Embedded 2 | `src/messaging/` |
+| Embedded 3 | `src/server/` |
+| Web 1 | `data/www/index.html`, `data/www/style.css`, `data/www/ui.js` |
+| Web 2 | `data/www/client.js`, `data/www/diagnostics.js` |
+| Protocol | `src/protocol/`, `test/test_native_protocol/`, `docs/protocol_spec.md` |
+| QA | `docs/test_cases.md`, `docs/performance_analysis.md`, `tests/results/` |
+| DevOps | `platformio.ini`, `.github/`, `scripts/flash_nodes.ps1`, `README.md` |
 
 ## Probleme frecvente
 
