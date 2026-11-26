@@ -56,7 +56,7 @@ Pune fiecare suita Unity care ruleaza pe PC intr-un folder `test/test_native_<mo
 
 ## GitHub
 
-Accepta invitatia la repository. Porneste din `main` actualizat si creeaza un branch `feature/<task>` pentru issue-ul care ti-a fost asignat. Pentru modificarile de integrare poti folosi si `dev-ops`.
+Accepta invitatia la repository. Porneste din `main` actualizat si creeaza un branch `feature/<task>` pentru issue-ul care ti-a fost asignat.
 
 ```powershell
 git switch main
@@ -67,9 +67,9 @@ git commit -m "Add radio module"
 git push -u origin feature/modul-radio
 ```
 
-Primul push cu modificari deschide automat un PR catre `main`. Urmatoarele push-uri ajung in acelasi PR. Completeaza in PR ce ai schimbat si cum ai verificat. Pentru `src/radio/` si `src/messaging/`, GitHub cere automat review Technical Lead-ului.
+Primul push al unui coleg pe `feature/<task>` deschide automat un PR catre `main`. Urmatoarele push-uri ajung in acelasi PR. Completeaza in PR ce ai schimbat si cum ai verificat. Pentru `src/radio/` si `src/messaging/`, GitHub cere automat review Technical Lead-ului.
 
-CI compileaza ambele noduri, construieste imaginile LittleFS si ruleaza suitele native disponibile. Rezultatul CI si review-ul sunt consultative. DevOps coordoneaza integrarea prin merge manual.
+CI compileaza ambele noduri, construieste imaginile LittleFS si ruleaza suitele native disponibile. Rezultatul CI si review-ul sunt consultative. DevOps integreaza PR-urile echipei manual si poate face push direct pe `main` pentru modificarile proprii.
 
 | Rol | Unde lucreaza |
 | --- | --- |
