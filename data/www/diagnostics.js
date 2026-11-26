@@ -14,6 +14,12 @@ export class DiagnosticsRunner {
     }
   }
 
+  reset() {
+    if (this.running) return;
+    this.records = [];
+    this.ui?.renderDiagnostics?.(this.getSummary(), this.records);
+  }
+
   async runBurst({ count = 20, intervalMs = 120, timeoutMs = 1500 } = {}) {
     if (this.running) return this.getSummary();
     this.running = true;
@@ -108,6 +114,8 @@ export class DiagnosticsRunner {
     const packetLossPct = sent > 0 ? Number((((sent - delivered) / sent) * 100).toFixed(2)) : 0;
 
     const rtts = deliveredRows.map((r) => r.rttMs).sort((a, b) => a - b);
+    const minRttMs = rtts.length > 0 ? Number(rtts[0].toFixed(2)) : 0;
+    const maxRttMs = rtts.length > 0 ? Number(rtts[rtts.length - 1].toFixed(2)) : 0;
     const avgRttMs =
       rtts.length > 0
         ? Number((rtts.reduce((acc, v) => acc + v, 0) / rtts.length).toFixed(2))
@@ -140,6 +148,8 @@ export class DiagnosticsRunner {
       retriedCount,
       failed,
       packetLossPct,
+      minRttMs,
+      maxRttMs,
       avgRttMs,
       stdDevRttMs,
       medianRttMs,
