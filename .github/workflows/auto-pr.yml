@@ -23,6 +23,7 @@ jobs:
           GH_REPO: ${{ github.repository }}
           BRANCH: ${{ github.ref_name }}
           OWNER: ${{ github.repository_owner }}
+          REVIEWER: dcirstoc34-ai
         run: |
           existing_pr=$(gh api --method GET "repos/$GH_REPO/pulls" \
             -f state=open -f base=main -f head="$OWNER:$BRANCH" \
@@ -41,7 +42,13 @@ jobs:
           fi
 
           title="${BRANCH#feature/}"
-          gh api "repos/$GH_REPO/pulls" \
+          pr_number=$(gh api "repos/$GH_REPO/pulls" \
             -f base=main -f head="$BRANCH" -f title="${title//-/ }" \
             -f body=$'## Ce am schimbat\n\n## Cum am verificat' \
-            --jq '.html_url'
+            --jq '.number')
+          echo "$GITHUB_SERVER_URL/$GH_REPO/pull/$pr_number"
+
+          if [[ "$GITHUB_ACTOR" != "$REVIEWER" ]]; then
+            gh api --method POST --silent "repos/$GH_REPO/pulls/$pr_number/requested_reviewers" \
+              -f "reviewers[]=$REVIEWER"
+          fi
