@@ -6,6 +6,8 @@ on:
     branches:
       - main
       - 'feature/**'
+      - web1-chat-ui
+      - feat/web2-client-diagnostics
       - dev-ops
 
 permissions:
