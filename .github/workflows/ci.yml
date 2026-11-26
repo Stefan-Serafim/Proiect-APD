@@ -19,28 +19,23 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: '3.13'
-      - name: Install PlatformIO
-        run: python -m pip install platformio==6.2.0
-      - name: Check for firmware
-        id: firmware
+      - name: Install ESP-IDF 5.5.5
         run: |
-          if [[ -f embedded/main.c || -f embedded/main.cpp ]]; then
-            echo "present=true" >> "$GITHUB_OUTPUT"
-          else
-            echo 'Waiting for embedded/main.c or embedded/main.cpp.'
-          fi
-      - name: Build Node A
-        if: steps.firmware.outputs.present == 'true'
-        run: pio run -e node_a
-      - name: Build Node B
-        if: steps.firmware.outputs.present == 'true'
-        run: pio run -e node_b
-      - name: Build LittleFS images
-        if: steps.firmware.outputs.present == 'true'
-        run: pio run -e node_a -e node_b -t buildfs
+          git clone --depth 1 --branch v5.5.5 --recurse-submodules --shallow-submodules https://github.com/espressif/esp-idf.git "$RUNNER_TEMP/esp-idf"
+          "$RUNNER_TEMP/esp-idf/install.sh" esp32
+      - name: Build both nodes and their SPIFFS images
+        run: |
+          source "$RUNNER_TEMP/esp-idf/export.sh"
+          idf.py -B build/node_a -D APD_NODE=a build
+          idf.py -B build/node_b -D APD_NODE=b build
+          grep -Fx 'CONFIG_APP_NODE_ID=1' build/node_a/sdkconfig.node_a
+          grep -Fx 'CONFIG_APP_NODE_ID=2' build/node_b/sdkconfig.node_b
+          test -s build/node_a/www.bin
+          test -s build/node_b/www.bin
       - name: Run native Unity tests
         run: |
           if compgen -G 'test/test_native_*/' > /dev/null; then
+            python -m pip install platformio==6.2.0
             pio test -e native
           else
             echo 'No native Unity tests yet.'
