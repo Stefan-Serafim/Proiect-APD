@@ -1,0 +1,48 @@
+name: Open pull request
+
+on:
+  push:
+    branches:
+      - 'feature/**'
+      - dev-ops
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: auto-pr-${{ github.ref }}
+
+jobs:
+  open-pr:
+    if: github.event.deleted == false
+    runs-on: ubuntu-latest
+    steps:
+      - name: Open a pull request if needed
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          BRANCH: ${{ github.ref_name }}
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          existing_pr=$(gh api --method GET "repos/$GH_REPO/pulls" \
+            -f state=open -f base=main -f head="$OWNER:$BRANCH" \
+            --jq '.[0].html_url // ""')
+          if [[ -n "$existing_pr" ]]; then
+            echo "Pull request already open $existing_pr"
+            exit 0
+          fi
+
+          encoded_branch=$(jq -rn --arg branch "$BRANCH" '$branch | @uri')
+          has_changes=$(gh api "repos/$GH_REPO/compare/main...$encoded_branch" \
+            --jq '.ahead_by > 0 and (.files | length > 0)')
+          if [[ "$has_changes" != true ]]; then
+            echo "No changes to propose to main."
+            exit 0
+          fi
+
+          title="${BRANCH#feature/}"
+          gh api "repos/$GH_REPO/pulls" \
+            -f base=main -f head="$BRANCH" -f title="${title//-/ }" \
+            -f body=$'## Ce am schimbat\n\n## Cum am verificat' \
+            --jq '.html_url'
