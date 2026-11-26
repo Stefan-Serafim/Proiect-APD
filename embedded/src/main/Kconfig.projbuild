@@ -1,0 +1,39 @@
+menu "APD ESP32 Offline Chat"
+
+config APP_NODE_ID
+    int "Node numeric ID"
+    range 1 254
+    default 1
+    help
+        Unique sender ID carried in every application packet.
+
+config APP_NODE_NAME
+    string "Node display name"
+    default "NODE_A"
+
+config APP_AP_SSID
+    string "SoftAP Wi-Fi SSID"
+    default "APD-Node-A"
+
+config APP_AP_PASSWORD
+    string "SoftAP Wi-Fi Password (empty = open)"
+    default ""
+
+config ESPNOW_CHANNEL
+    int "ESP-NOW & SoftAP Wi-Fi channel"
+    range 1 13
+    default 6
+    help
+        Both SoftAP and ESP-NOW operate on this fixed channel.
+
+config CHAT_ACK_TIMEOUT_MS
+    int "Chat ACK timeout (ms)"
+    range 50 5000
+    default 400
+
+config CHAT_MAX_RETRIES
+    int "Chat maximum retries"
+    range 1 20
+    default 4
+
+endmenu
