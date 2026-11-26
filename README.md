@@ -57,9 +57,9 @@ Pune fiecare suita Unity care ruleaza pe PC intr-un folder `test/test_native_<mo
 
 ## Cum lucram pe GitHub
 
-Accepta invitatia la repository. Embedded foloseste branch-ul comun `feature/embedded`, iar Web foloseste `feature/web`. Stabiliti in echipa cine lucreaza la fiecare fisier. Fiecare pune 1-2 commituri cu schimbarile sale pe branch-ul comun. Pentru celelalte task-uri, porneste din `main` actualizat si creeaza un branch `feature/<task>`.
+Accepta invitatia la repository si foloseste branch-ul din tabel pentru rolul tau. Embedded si Web isi impart fisierele in echipa. Fiecare coleg pune 1-2 commituri cu schimbarile sale pe branch-ul echipei.
 
-Exemplu pentru Embedded. Colegii de la Web folosesc aceiasi pasi cu `feature/web`.
+Exemplu pentru Embedded. Pentru Web, Protocol sau QA, inlocuieste `feature/embedded` cu branch-ul tau.
 
 ```powershell
 git fetch origin
@@ -76,19 +76,23 @@ git pull --rebase
 git push
 ```
 
-Primul push cu modificari pe branch-ul echipei deschide automat un PR catre `main`. Push-urile colegilor se aduna in acelasi PR. Scrieti acolo ce ati schimbat si ce ati incercat. GitHub cere review Technical Lead-ului pentru modificarile Embedded.
+Primul push al unui coleg pe un branch `feature/...` deschide automat un PR catre `main`. Urmatoarele push-uri se aduna in acelasi PR. Scrie acolo ce ai schimbat si ce ai incercat.
+
+GitHub cere automat review lui Darius (`dcirstoc34-ai`) pentru PR-urile create la push-urile celorlalti colegi. Pentru un PR deschis manual, adauga-l pe Darius la `Reviewers`. Darius cere review unui alt coleg pentru PR-urile sale.
 
 CI compileaza ambele noduri, construieste imaginile LittleFS si ruleaza suitele native disponibile. Rezultatul CI si review-ul sunt consultative. DevOps integreaza PR-urile echipei manual si poate face push direct pe `main` pentru modificarile proprii.
 
-| Rol | Unde lucreaza |
-| --- | --- |
-| PM | `docs/management/`, `docs/testing_protocol.md`, `scripts/plot_metrics.py` |
-| Technical Lead | `docs/architecture.md`, `src/main.cpp`, `src/app_core.h` |
-| Embedded | `src/radio/`, `src/messaging/`, `src/server/` |
-| Web | `data/www/` |
-| Protocol | `src/protocol/`, `test/test_native_protocol/`, `docs/protocol_spec.md` |
-| QA | `docs/test_cases.md`, `docs/performance_analysis.md`, `tests/results/` |
-| DevOps | `platformio.ini`, `partitions.csv`, `sdkconfig.defaults`, `.github/`, `scripts/flash_nodes.ps1`, `README.md` |
+| Rol | Branch | Unde lucreaza |
+| --- | --- | --- |
+| PM | `feature/<task>` | `docs/management/`, `docs/testing_protocol.md`, `scripts/plot_metrics.py` |
+| Technical Lead | `feature/<task>` | `docs/architecture.md`, `src/main.cpp`, `src/app_core.h` |
+| Embedded | `feature/embedded` | `src/radio/`, `src/messaging/`, `src/server/` |
+| Web | `feature/web` | `data/www/` |
+| Protocol | `feature/protocol` | `src/protocol/`, `test/test_native_protocol/`, `docs/protocol_spec.md` |
+| QA | `feature/qa` | `docs/test_cases.md`, `docs/performance_analysis.md`, `tests/results/` |
+| DevOps | `main` sau `dev-ops` | `platformio.ini`, `partitions.csv`, `sdkconfig.defaults`, `.github/`, `scripts/flash_nodes.ps1`, `README.md` |
+
+Pentru un task de PM sau Technical Lead, creeaza branch-ul din `main` actualizat.
 
 ## Probleme frecvente
 
