@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - 'feature/**'
+      - web1-chat-ui
+      - feat/web2-client-diagnostics
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -14,7 +17,11 @@ concurrency:
 
 jobs:
   open-pr:
-    if: github.event.deleted == false && github.actor != github.repository_owner
+    if: >-
+      (github.event_name == 'push' && github.event.deleted == false &&
+      github.actor != github.repository_owner) ||
+      (github.event_name == 'workflow_dispatch' &&
+      (github.ref_name == 'web1-chat-ui' || github.ref_name == 'feat/web2-client-diagnostics'))
     runs-on: ubuntu-latest
     steps:
       - name: Open a pull request if needed
@@ -42,6 +49,7 @@ jobs:
           fi
 
           title="${BRANCH#feature/}"
+          title="${title#feat/}"
           pr_number=$(gh api "repos/$GH_REPO/pulls" \
             -f base=main -f head="$BRANCH" -f title="${title//-/ }" \
             --jq '.number')
