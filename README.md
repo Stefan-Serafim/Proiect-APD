@@ -19,6 +19,7 @@ Proiectul va permite schimbul de mesaje intre doua telefoane fara internet. Fiec
 ```powershell
 pio run
 ```
+//test pentru darius
 
 PlatformIO descarca ESP-IDF si componenta LittleFS la prima compilare. Profilurile folosesc `esp32dev` cu 4 MB de flash. Pentru alta placa, schimba `board` in `platformio.ini`. Daca difera memoria flash, ajusteaza si `partitions.csv` si `sdkconfig.defaults`.
 
