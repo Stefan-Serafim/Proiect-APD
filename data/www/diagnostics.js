@@ -21,24 +21,36 @@ export class DiagnosticsRunner {
     this.ui?.renderDiagnostics?.(this.getSummary(), this.records);
   }
 
-  async runBurst({ count = 20, intervalMs = 120, timeoutMs = 1500, scenario = "default" } = {}) {
+  async runBurst({
+    count = 20,
+    intervalMs = 120,
+    timeoutMs = 1500,
+    scenario = "default",
+    append = false,
+  } = {}) {
     if (this.running) return this.getSummary();
     this.running = true;
     this.abortRequested = false;
     this.lastScenario = String(scenario || "default").trim() || "default";
-    this.records = [];
+
+    if (!append) {
+      this.records = [];
+    }
+
+    const startSeq = this.records.length;
     this.ui?.renderDiagnostics?.(this.getSummary(), this.records);
 
     for (let i = 1; i <= count; i++) {
       if (this.abortRequested) break;
 
+      const seq = startSeq + i;
       const t0 = performance.now();
-      const probeText = `[DIAG #${i}/${count}]`;
+      const probeText = `[DIAG #${seq} (${this.lastScenario})]`;
       const res = this.client.sendMessage(probeText);
 
       if (!res.ok) {
         this.records.push({
-          seq: i,
+          seq,
           scenario: this.lastScenario,
           id: "",
           status: "failed",
@@ -57,7 +69,7 @@ export class DiagnosticsRunner {
         const delivered = outcome?.status === "delivered";
 
         this.records.push({
-          seq: i,
+          seq,
           scenario: this.lastScenario,
           id: res.id,
           status: delivered ? "delivered" : "failed",
