@@ -6,6 +6,7 @@ export class DiagnosticsRunner {
     this.records = [];
     this.running = false;
     this.abortRequested = false;
+    this.lastScenario = "default";
   }
 
   stop() {
@@ -20,10 +21,11 @@ export class DiagnosticsRunner {
     this.ui?.renderDiagnostics?.(this.getSummary(), this.records);
   }
 
-  async runBurst({ count = 20, intervalMs = 120, timeoutMs = 1500 } = {}) {
+  async runBurst({ count = 20, intervalMs = 120, timeoutMs = 1500, scenario = "default" } = {}) {
     if (this.running) return this.getSummary();
     this.running = true;
     this.abortRequested = false;
+    this.lastScenario = String(scenario || "default").trim() || "default";
     this.records = [];
     this.ui?.renderDiagnostics?.(this.getSummary(), this.records);
 
@@ -37,6 +39,7 @@ export class DiagnosticsRunner {
       if (!res.ok) {
         this.records.push({
           seq: i,
+          scenario: this.lastScenario,
           id: "",
           status: "failed",
           retries: 0,
@@ -55,6 +58,7 @@ export class DiagnosticsRunner {
 
         this.records.push({
           seq: i,
+          scenario: this.lastScenario,
           id: res.id,
           status: delivered ? "delivered" : "failed",
           retries: outcome?.extra?.retries ?? 0,
@@ -141,6 +145,7 @@ export class DiagnosticsRunner {
         : null;
 
     return {
+      scenario: this.lastScenario,
       running: this.running,
       sent,
       delivered,
@@ -158,9 +163,22 @@ export class DiagnosticsRunner {
     };
   }
 
+  downloadCsv(csvContent, filename) {
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+
   exportCsv(filename = "apd_diag_results.csv") {
     const headers = [
       "seq",
+      "scenario",
       "id",
       "status",
       "retries",
@@ -174,6 +192,7 @@ export class DiagnosticsRunner {
       ...this.records.map((r) =>
         [
           r.seq,
+          r.scenario ?? this.lastScenario,
           r.id,
           r.status,
           r.retries ?? 0,
@@ -186,15 +205,46 @@ export class DiagnosticsRunner {
           .join(",")
       ),
     ];
+    this.downloadCsv(lines.join("\n"), filename);
+  }
 
-    const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute("download", filename);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+  exportSummaryCsv(filename = "apd_diag_summary.csv") {
+    const s = this.getSummary();
+    const headers = [
+      "scenario",
+      "sent",
+      "delivered",
+      "first_try_delivered",
+      "retried",
+      "failed",
+      "packet_loss_pct",
+      "min_rtt_ms",
+      "max_rtt_ms",
+      "avg_rtt_ms",
+      "stddev_rtt_ms",
+      "median_rtt_ms",
+      "p95_rtt_ms",
+      "avg_rssi",
+    ];
+    const row = [
+      s.scenario,
+      s.sent,
+      s.delivered,
+      s.firstTryDelivered,
+      s.retriedCount,
+      s.failed,
+      s.packetLossPct,
+      s.minRttMs,
+      s.maxRttMs,
+      s.avgRttMs,
+      s.stdDevRttMs,
+      s.medianRttMs,
+      s.p95RttMs,
+      s.avgRssi ?? "",
+    ]
+      .map((val) => `"${String(val).replaceAll('"', '""')}"`)
+      .join(",");
+
+    this.downloadCsv([headers.join(","), row].join("\n"), filename);
   }
 }
