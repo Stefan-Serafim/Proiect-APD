@@ -51,7 +51,7 @@ Pune fiecare suita Unity care ruleaza pe PC intr-un folder `test/test_native_<mo
 
 ## Cum lucram pe GitHub
 
-Accepta invitatia la repository si foloseste branch-ul din tabel pentru rolul tau. Embedded si Web isi impart fisierele in echipa. Fiecare coleg pune 1-2 commituri cu schimbarile sale pe branch-ul echipei.
+Accepta invitatia la repository si foloseste branch-ul din tabel pentru rolul tau. Embedded lucreaza pe un branch comun, iar colegii Web lucreaza pe branch-urile lor. Fiecare coleg pune 1-2 commituri cu schimbarile sale pe branch-ul din tabel.
 
 Exemplu pentru Embedded. Pentru Web, Protocol sau QA, inlocuieste `feature/embedded` cu branch-ul tau.
 
@@ -70,7 +70,7 @@ git pull --rebase
 git push
 ```
 
-Primul push al unui coleg pe un branch `feature/...` deschide automat un PR catre `main`. Urmatoarele push-uri se aduna in acelasi PR.
+Primul push al unui coleg pe un branch `feature/...` sau pe unul dintre cele doua branch-uri Web deschide automat un PR catre `main`. Urmatoarele push-uri se aduna in acelasi PR.
 
 GitHub cere automat review lui Darius (`dcirstoc34-ai`) pentru PR-urile create la push-urile celorlalti colegi. Pentru un PR deschis manual, adauga-l pe Darius la `Reviewers`. Darius cere review unui alt coleg pentru PR-urile sale.
 
@@ -81,7 +81,8 @@ CI compileaza ambele noduri, genereaza imaginile SPIFFS si ruleaza suitele nativ
 | PM | `feature/<task>` | `docs/management/`, `docs/testing_protocol.md`, `scripts/plot_metrics.py` |
 | Technical Lead | `feature/<task>` | `docs/architecture.md`, `embedded/src/main/` |
 | Embedded | `feature/embedded` | `embedded/src/radio/`, `embedded/src/messaging/`, `embedded/src/server/` |
-| Web | `feature/web` | `data/www/` |
+| Web 1 | `web1-chat-ui` | Interfata de chat in `data/www/` |
+| Web 2 | `feat/web2-client-diagnostics` | `data/www/client.js`, `data/www/diagnostics.js` |
 | Protocol | `feature/protocol` | `embedded/src/protocol/`, `test/test_native_protocol/`, `docs/protocol_spec.md` |
 | QA | `feature/qa` | `docs/test_cases.md`, `docs/performance_analysis.md`, `tests/results/` |
 | DevOps | `main` sau `dev-ops` | `CMakeLists.txt`, `partitions.csv`, `sdkconfig.defaults`, `.github/`, `scripts/flash_nodes.ps1`, `README.md` |
