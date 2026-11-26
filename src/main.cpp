@@ -1,25 +1,33 @@
-#include <Arduino.h>
-#include <LittleFS.h>
+#include <cstdio>
 
-void setup() {
-    Serial.begin(115200);
-    Serial.println(APD_NODE_ID == 1 ? "Node A" : "Node B");
+#include "esp_err.h"
+#include "esp_littlefs.h"
+#include "esp_log.h"
 
-    if (!LittleFS.begin()) {
-        Serial.println("LittleFS mount failed");
+extern "C" void app_main() {
+    ESP_LOGI("apd", "Node %c", APD_NODE_ID == 1 ? 'A' : 'B');
+
+    esp_vfs_littlefs_conf_t config = {};
+    config.base_path = "/littlefs";
+    config.partition_label = "littlefs";
+
+    const esp_err_t result = esp_vfs_littlefs_register(&config);
+    if (result != ESP_OK) {
+        ESP_LOGE("apd", "LittleFS mount failed: %s", esp_err_to_name(result));
         return;
     }
 
-    File status = LittleFS.open("/www/status.txt", "r");
+    std::FILE *status = std::fopen("/littlefs/www/status.txt", "r");
     if (!status) {
-        Serial.println("Missing /www/status.txt");
+        ESP_LOGE("apd", "Could not open /littlefs/www/status.txt");
         return;
     }
 
-    while (status.available()) {
-        Serial.write(status.read());
+    char line[80];
+    if (std::fgets(line, sizeof(line), status)) {
+        std::printf("%s", line);
+    } else {
+        ESP_LOGE("apd", "Could not read /littlefs/www/status.txt");
     }
-}
-
-void loop() {
+    std::fclose(status);
 }
