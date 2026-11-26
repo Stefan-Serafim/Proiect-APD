@@ -8,19 +8,20 @@ param(
     [string]$Port
 )
 
-if (-not (Get-Command pio -ErrorAction SilentlyContinue)) {
-    throw 'Deschide un terminal PlatformIO in VS Code.'
+if (-not $env:IDF_PATH) {
+    throw 'Deschide un terminal ESP-IDF in VS Code.'
 }
 
+$idf = Join-Path $env:IDF_PATH 'tools/idf.py'
 $projectDir = Split-Path -Parent $PSScriptRoot
-$environment = "node_$($Node.ToLowerInvariant())"
+$profile = $Node.ToLowerInvariant()
 
-pio run -d $projectDir -e $environment -t upload --upload-port $Port
-if ($LASTEXITCODE -ne 0) {
-    throw "Compilarea sau incarcarea firmware-ului a esuat pentru $Node pe $Port."
-}
-
-pio run -d $projectDir -e $environment -t uploadfs --upload-port $Port
-if ($LASTEXITCODE -ne 0) {
-    throw "Incarcarea LittleFS a esuat pentru $Node pe $Port."
+Push-Location $projectDir
+try {
+    python $idf -B "build/node_$profile" -D "APD_NODE=$profile" -p $Port flash
+    if ($LASTEXITCODE -ne 0) {
+        throw "Compilarea sau incarcarea a esuat pentru nodul $Node pe $Port."
+    }
+} finally {
+    Pop-Location
 }
