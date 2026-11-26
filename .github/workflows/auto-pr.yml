@@ -44,7 +44,6 @@ jobs:
           title="${BRANCH#feature/}"
           pr_number=$(gh api "repos/$GH_REPO/pulls" \
             -f base=main -f head="$BRANCH" -f title="${title//-/ }" \
-            -f body=$'## Ce am schimbat\n\n## Cum am verificat' \
             --jq '.number')
           echo "$GITHUB_SERVER_URL/$GH_REPO/pull/$pr_number"
 

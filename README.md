@@ -1,6 +1,6 @@
 # Proiect APD - Mesagerie offline
 
-Proiectul va permite schimbul de mesaje intre doua telefoane fara internet. Fiecare telefon se va conecta prin Wi-Fi SoftAP la placa sa ESP32, iar placile vor comunica prin ESP-NOW. Firmware-ul de pornire afiseaza numele nodului si citeste un fisier din LittleFS.
+Proiectul va permite schimbul de mesaje intre doua telefoane fara internet. Fiecare telefon se va conecta prin Wi-Fi SoftAP la placa sa ESP32, iar placile vor comunica prin ESP-NOW.
 
 ## Tehnologii
 
@@ -14,7 +14,7 @@ Proiectul va permite schimbul de mesaje intre doua telefoane fara internet. Fiec
 2. Instaleaza extensia PlatformIO IDE in VS Code.
 3. Cloneaza proiectul cu `git clone https://github.com/Stefan-Serafim/Proiect-APD.git`.
 4. Deschide folderul `Proiect-APD` in VS Code si porneste un terminal PlatformIO.
-5. Ruleaza comanda de mai jos. Daca trece, ai compilat ambele noduri. Poti face acest test fara placi.
+5. Dupa ce echipa adauga `embedded/main.c` sau `embedded/main.cpp`, ruleaza comanda de mai jos ca sa compilezi ambele noduri. Poti face acest test fara placi.
 
 ```powershell
 pio run
@@ -41,18 +41,18 @@ pio run -e node_b -t upload --upload-port COM4
 pio run -e node_b -t uploadfs --upload-port COM4
 ```
 
-La prima incercare, ruleaza scriptul pentru fiecare placa si deschide monitorul serial la 115200. Dupa ce repornesti placa, ar trebui sa vezi `Node A` sau `Node B`, urmat de `Proiect APD - LittleFS OK`.
+Dupa ce incarci firmware-ul, deschide monitorul serial la 115200 si reporneste placa ca sa vezi mesajele de la pornire.
 
 Echipa Web poate verifica aspectul paginii in browser cand exista `data/www/index.html`. Mesageria se testeaza cu ambele placi dupa integrarea modulelor.
 
 ## Structura
 
-- `src/`, `include/`, `lib/` pentru firmware, headere si biblioteci locale
+- `embedded/`, `include/`, `lib/` pentru firmware, headere si biblioteci locale
 - `data/www/` pentru fisierele web, disponibile in firmware la `/littlefs/www/`
 - `test/` pentru teste Unity si `docs/` pentru documentatie
 - `scripts/` pentru flash si `.github/workflows/` pentru CI
 
-Punctul de intrare al firmware-ului este `app_main()` in `src/main.cpp`. Cand adaugi fisiere C/C++ in `src/`, trece-le in lista `SRCS` din `src/CMakeLists.txt` si declara componentele ESP-IDF folosite in `PRIV_REQUIRES`. Pentru SoftAP si ESP-NOW, foloseste API-urile `esp_wifi` si `esp_now`.
+Pune codul ESP32 in `embedded/`. Porneste cu `main.c` sau `main.cpp` si functia `app_main()`. Daca adaugi cod intr-un subfolder, include-l in `SRC_DIRS` din `embedded/CMakeLists.txt`.
 
 Pune fiecare suita Unity care ruleaza pe PC intr-un folder `test/test_native_<modul>/`.
 
@@ -77,19 +77,19 @@ git pull --rebase
 git push
 ```
 
-Primul push al unui coleg pe un branch `feature/...` deschide automat un PR catre `main`. Urmatoarele push-uri se aduna in acelasi PR. Scrie acolo ce ai schimbat si ce ai incercat.
+Primul push al unui coleg pe un branch `feature/...` deschide automat un PR catre `main`. Urmatoarele push-uri se aduna in acelasi PR.
 
 GitHub cere automat review lui Darius (`dcirstoc34-ai`) pentru PR-urile create la push-urile celorlalti colegi. Pentru un PR deschis manual, adauga-l pe Darius la `Reviewers`. Darius cere review unui alt coleg pentru PR-urile sale.
 
-CI compileaza ambele noduri, construieste imaginile LittleFS si ruleaza suitele native disponibile. Rezultatul CI si review-ul sunt consultative. DevOps integreaza PR-urile echipei manual si poate face push direct pe `main` pentru modificarile proprii.
+CI compileaza ambele noduri si construieste imaginile LittleFS dupa ce apare fisierul de pornire. Ruleaza si suitele native disponibile. CI si review-ul sunt consultative. DevOps integreaza PR-urile echipei manual si poate face push direct pe `main` pentru modificarile proprii.
 
 | Rol | Branch | Unde lucreaza |
 | --- | --- | --- |
 | PM | `feature/<task>` | `docs/management/`, `docs/testing_protocol.md`, `scripts/plot_metrics.py` |
-| Technical Lead | `feature/<task>` | `docs/architecture.md`, `src/main.cpp`, `src/app_core.h` |
-| Embedded | `feature/embedded` | `src/radio/`, `src/messaging/`, `src/server/` |
+| Technical Lead | `feature/<task>` | `docs/architecture.md`, `embedded/main.cpp`, `embedded/app_core.h` |
+| Embedded | `feature/embedded` | `embedded/radio/`, `embedded/messaging/`, `embedded/server/` |
 | Web | `feature/web` | `data/www/` |
-| Protocol | `feature/protocol` | `src/protocol/`, `test/test_native_protocol/`, `docs/protocol_spec.md` |
+| Protocol | `feature/protocol` | `embedded/protocol/`, `test/test_native_protocol/`, `docs/protocol_spec.md` |
 | QA | `feature/qa` | `docs/test_cases.md`, `docs/performance_analysis.md`, `tests/results/` |
 | DevOps | `main` sau `dev-ops` | `platformio.ini`, `partitions.csv`, `sdkconfig.defaults`, `.github/`, `scripts/flash_nodes.ps1`, `README.md` |
 
